@@ -12,6 +12,11 @@ if 'history' not in st.session_state:
 def load_model():
     try:
         tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-medium")
+        
+        # Set pad token to eos token if not already set
+        if tokenizer.pad_token is None:
+            tokenizer.pad_token = tokenizer.eos_token
+            
         model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-medium")
         return tokenizer, model
     except Exception as e:
@@ -37,7 +42,7 @@ def generate_response(user_input, tokenizer, model):
             inputs.input_ids,
             attention_mask=inputs.attention_mask,
             max_length=1000,
-            pad_token_id=tokenizer.eos_token_id,
+            pad_token_id=tokenizer.pad_token_id,
             do_sample=True,
             top_k=50,
             top_p=0.95,
@@ -182,7 +187,7 @@ if send_button and user_input.strip() != "":
         bot_response = generate_response(user_input, tokenizer, model)
         st.session_state.history.append({"role": "bot", "content": bot_response})
     
-    # Rerun to update the display (using the current correct method)
+    # Rerun to update the display
     st.rerun()
 
 # JavaScript to auto-scroll to bottom of chat
